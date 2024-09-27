@@ -9,11 +9,11 @@ router.post('/login',login);
 
 router.post('/logout',logout);
 
-router.get('/save-all-districts',saveDistrictAQI)
+// router.get('/save-all-districts',saveDistrictAQI)
 
 router.get('/save-district-coordinates',saveDistrictCoordinates);
 
-router.get('/save-district-weather',saveDistrictWeather);
+// router.get('/save-district-weather',saveDistrictWeather);
 
 router.get("/check-auth",verifyToken,checkAuth)
 
@@ -21,7 +21,7 @@ router.post('/update-data',verifyToken,updateData)
 
 router.get('/check-predicted-data',checkPredictedData)
 
-router.get('/save-all-country-aqi',saveAllCountryAQI)
+// router.get('/save-all-country-aqi',saveAllCountryAQI)
 
 router.get('/country-aqi',countryAQI)
 

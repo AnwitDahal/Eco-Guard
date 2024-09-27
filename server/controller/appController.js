@@ -321,7 +321,6 @@ module.exports.checkPredictedData = async (req, res) => {
         // Scan all days in the predicted AQI data
         aqiData.data.forEach(dayData => {
           const day = dayData.day;
-          const lowAQI = dayData.details.aqi.low;
           const highAQI = dayData.details.aqi.high;
 
           // Check if AQI exceeds 150 on any day
