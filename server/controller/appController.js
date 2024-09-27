@@ -1,6 +1,6 @@
 const UserModel = require("../model/UserModel");
 const { generateOTP, generateTokenAndSetCookie } = require("../utils/jwtconfiguration");
-const { hashPassword } = require("../utils/password");
+const { hashPassword, verifyPassword } = require("../utils/password");
 
 module.exports.signup = async (req, res) => {
   const { email, password, name, phNumber, address } = req.body;
@@ -50,4 +50,52 @@ module.exports.signup = async (req, res) => {
   } catch (error) {
     return res.status(400).json({ success: false, message: error.message });
   }
+};
+
+module.exports.login = async (req, res) => {
+  const { email, password } = req.body;
+  try {
+    const user = await UserModel.findOne({ email });
+
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Email or Password",
+      });
+    }
+
+    const passwordValidate =await verifyPassword(user.password, password);
+    if (!passwordValidate) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Email or Password",
+      });
+    }
+    generateTokenAndSetCookie(res, user._id);
+
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "LoggedIn Successfully",
+      user: {
+        ...user._doc,
+        password: undefined,
+      },
+    });
+  } catch (err) {
+    console.log("Error in Login !:", err);
+    res.status(400).json({
+      success: false,
+      message: err.message,
+    });
+  }
+};
+
+module.exports.logout = async (req, res) => {
+  res.clearCookie("token");
+  res.status(200).json({
+    success: true,
+    message: "Logged Out Successfully",
+  });
 };
