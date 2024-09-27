@@ -1,12 +1,19 @@
 const express=require('express');
 const { connectDB } = require('./database/connectDB');
+const appRoutes = require("./routes/app");
 require("dotenv").config();
 const app=express();
-const PORT=3000;
+const PORT=5000;
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
 
 app.get('/',(req,res)=>{
     res.send("Hello world")
 })
+
+app.use('/api/app',appRoutes);
 
 app.listen(PORT,()=>{
     connectDB();
