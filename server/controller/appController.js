@@ -1,6 +1,8 @@
 const UserModel = require("../model/UserModel");
 const { generateOTP, generateTokenAndSetCookie } = require("../utils/jwtconfiguration");
 const { hashPassword, verifyPassword } = require("../utils/password");
+const { fetchAndStoreDistrictCoordinates } = require("./coordinatesContoller");
+const { fetchAndStoreAQIData, fetchAndStoreDistrictWeather } = require("./weatherController");
 
 module.exports.signup = async (req, res) => {
   const { email, password, name, phNumber, address } = req.body;
@@ -98,4 +100,48 @@ module.exports.logout = async (req, res) => {
     success: true,
     message: "Logged Out Successfully",
   });
+};
+
+module.exports.saveDistrictAQI = async (req, res) => {
+  try {
+    await fetchAndStoreAQIData();
+    res.status(200).json({ message: "AQI data saved for all districts" });
+  } catch (error) {
+    console.error("Error saving AQI data for all districts:", error.message);
+    res
+      .status(500)
+      .json({ error: "Failed to save AQI data for all districts" });
+  }
+};
+
+module.exports.saveDistrictCoordinates = async (req, res) => {
+  try {
+    await fetchAndStoreDistrictCoordinates();
+    res
+      .status(200)
+      .json({ message: "Coordinates data saved for all districts" });
+  } catch (error) {
+    console.error(
+      "Error saving coordinates data for all districts:",
+      error.message
+    );
+    res
+      .status(500)
+      .json({ error: "Failed to save coordinates data for all districts" });
+  }
+};
+
+module.exports.saveDistrictWeather = async (req, res) => {
+  try {
+    await fetchAndStoreDistrictWeather();
+    res.status(200).json({ message: "Weather data saved for all districts" });
+  } catch (error) {
+    console.error(
+      "Error saving weather data for all districts:",
+      error.message
+    );
+    res
+      .status(500)
+      .json({ error: "Failed to save weather data for all districts" });
+  }
 };
