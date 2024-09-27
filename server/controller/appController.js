@@ -1,5 +1,6 @@
 const AirQualityModel = require("../model/AirQualityModel");
 const DistrictCoordinatesModel = require("../model/DistrictCoordinatesModel");
+const CityData = require("../model/PredictedAQIModel");
 const UserModel = require("../model/UserModel");
 const WeatherModel = require("../model/WeatherModel");
 const { generateOTP, generateTokenAndSetCookie } = require("../utils/jwtconfiguration");
@@ -11,6 +12,7 @@ const axios=require('axios')
 
 module.exports.signup = async (req, res) => {
   const { email, password, name, phNumber, address } = req.body;
+  
   try {
     if (!email || !password || !name || !phNumber || !address) {
       throw new Error("All fields are required");
@@ -23,12 +25,13 @@ module.exports.signup = async (req, res) => {
         .json({ success: false, message: "User already exists" });
     }
 
-    //password hashing
+    // Password hashing
     const hash = await hashPassword(password);
 
-    //generating otp for verification
+    // Generating OTP for verification
     const verificationToken = generateOTP();
 
+    // Create new user
     const user = new UserModel({
       email,
       password: hash,
@@ -36,38 +39,45 @@ module.exports.signup = async (req, res) => {
       address,
       name,
       verificationToken,
-      verificationTokenExpiresAt: Date.now() + 24 * 60 * 60 * 1000, //24 hours
+      verificationTokenExpiresAt: Date.now() + 24 * 60 * 60 * 1000, // 24 hours
     });
 
     await user.save();
 
-    const district = address;
-
     // Fetch AQI data for the district
+    const district = address;
     const aqiData = await AirQualityModel.findOne({ district });
 
-    //Fetch weather data for the district
+    // Fetch weather data for the district
     const weatherData = await WeatherModel.findOne({ district });
 
+    // Predict AQI (integrating predictedAqi logic)
+    const cityData = await CityData.findOne({ district });
+    if (!cityData) {
+      return res.status(404).json({ message: "City data not found" });
+    }
 
-    //jwt
+    // JWT token generation
     generateTokenAndSetCookie(res, user._id);
 
-
+    // Respond with the user, AQI, weather, and city data
     res.status(201).json({
       success: true,
-      message: "User created succesfully",
+      message: "User created successfully",
       user: {
         ...user._doc,
         password: undefined,
       },
       aqiData: aqiData || null,
       weatherData: weatherData || null,
+      cityData: cityData || null,  // Include the city data in the response
     });
   } catch (error) {
+    console.error("Error during signup:", error);
     return res.status(400).json({ success: false, message: error.message });
   }
 };
+
 
 module.exports.login = async (req, res) => {
   const { email, password } = req.body;
@@ -98,6 +108,8 @@ module.exports.login = async (req, res) => {
 
     const weatherData = await WeatherModel.findOne({ district });
 
+    const cityData = await CityData.findOne({ district });
+
     return res.status(200).json({
       success: true,
       message: "LoggedIn Successfully",
@@ -107,6 +119,7 @@ module.exports.login = async (req, res) => {
       },
       aqiData: aqiData || null,
       weatherData: weatherData || null,
+      cityData: cityData || null,  // Include the city data in the response
     });
   } catch (err) {
     console.log("Error in Login !:", err);
@@ -285,3 +298,34 @@ module.exports.updateData = async (req, res) => {
     return res.status(500).json({ success: false, message: error.message });
   }
 };
+
+// module.exports.predictedAqi = async (req, res) => {
+//   const user = req.user; 
+//   // console.log(user);
+  
+//   try {
+//     if (!user) {
+//       return res
+//         .status(401)
+//         .json({ success: false, message: "User not authenticated" });
+//     }
+
+//     const district = user.address;
+    
+//     // Fetch data from the database using Mongoose
+//     const cityData = await CityData.findOne({ district });
+
+    
+
+//     if (!cityData) {
+//       return res.status(404).json({ message: "City data not found" });
+//     }
+
+//     // Send the city data as a response
+//     res.status(200).json(cityData);
+//   } catch (error) {
+//     // Handle any potential errors
+//     console.error("Error fetching city data:", error);
+//     res.status(500).json({ message: "Internal server error" });
+//   }
+// };
