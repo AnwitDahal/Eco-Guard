@@ -1,4 +1,5 @@
 const AirQualityModel = require("../model/AirQualityModel");
+const CountryAirQuality = require("../model/CountryAqiModel");
 const DistrictCoordinatesModel = require("../model/DistrictCoordinatesModel");
 const CityData = require("../model/PredictedAQIModel");
 const UserModel = require("../model/UserModel");
@@ -7,7 +8,7 @@ const { sendAlertEmail } = require("../nodemailer/email");
 const { generateOTP, generateTokenAndSetCookie } = require("../utils/jwtconfiguration");
 const { hashPassword, verifyPassword } = require("../utils/password");
 const { fetchAndStoreDistrictCoordinates } = require("./coordinatesContoller");
-const { fetchAndStoreAQIData, fetchAndStoreDistrictWeather } = require("./weatherController");
+const { fetchAndStoreAQIData, fetchAndStoreDistrictWeather, fetchAndStoreAQIDataCountry } = require("./weatherController");
 
 const axios=require('axios')
 
@@ -345,5 +346,59 @@ module.exports.checkPredictedData = async (req, res) => {
       error: error.message,
       success: false
     });
+  }
+};
+
+module.exports.saveAllCountryAQI=async (req,res)=>{
+  try {
+    await fetchAndStoreAQIDataCountry();
+    res.status(200).json({ message: "AQI data saved for all country" });
+  } catch (error) {
+    console.error("Error saving AQI data for all country:", error.message);
+    res
+      .status(500)
+      .json({ error: "Failed to save AQI data for all country" });
+  }
+}
+
+module.exports.countryAQI=async(req,res)=>{
+  try {
+    // Query to get only 'countryName' and 'overallAqi' from all countries
+    const countries = await CountryAirQuality.find({}, 'countryName overallAqi');
+
+    // Send the response with the filtered data
+    res.status(200).json(countries);
+  } catch (error) {
+    // Handle error
+    console.error('Error fetching country AQI data:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
+module.exports.countryPm2_5=async(req,res)=>{
+  try {
+    // Query to get only 'countryName' and 'overallAqi' from all countries
+    const countries = await CountryAirQuality.find({}, 'countryName pm25Aqi');
+
+    // Send the response with the filtered data
+    res.status(200).json(countries);
+  } catch (error) {
+    // Handle error
+    console.error('Error fetching country AQI data:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
+module.exports.countryOzone=async(req,res)=>{
+  try {
+    // Query to get only 'countryName' and 'overallAqi' from all countries
+    const countries = await CountryAirQuality.find({}, 'countryName o3Aqi');
+
+    // Send the response with the filtered data
+    res.status(200).json(countries);
+  } catch (error) {
+    // Handle error
+    console.error('Error fetching country AQI data:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 };

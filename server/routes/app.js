@@ -1,4 +1,4 @@
-const { signup, login, logout, saveDistrictAQI, saveDistrictCoordinates, saveDistrictWeather, checkAuth, updateData, predictedAqi, checkPredictedData } = require("../controller/appController");
+const { signup, login, logout, saveDistrictAQI, saveDistrictCoordinates, saveDistrictWeather, checkAuth, updateData, checkPredictedData, saveAllCountryAQI, countryAQI, countryPm2_5, countryOzone } = require("../controller/appController");
 const express=require('express');
 const { verifyToken } = require("../middlewares/verifyToken");
 const  router=express.Router();
@@ -20,5 +20,13 @@ router.get("/check-auth",verifyToken,checkAuth)
 router.post('/update-data',verifyToken,updateData)
 
 router.get('/check-predicted-data',checkPredictedData)
+
+router.get('/save-all-country-aqi',saveAllCountryAQI)
+
+router.get('/country-aqi',countryAQI)
+
+router.get('/country-pm2_5',countryPm2_5)
+
+router.get('/country-ozone',countryOzone)
 
 module.exports = router;

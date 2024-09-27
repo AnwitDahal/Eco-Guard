@@ -3,6 +3,8 @@ const axios=require('axios');
 const AirQualityModel = require("../model/AirQualityModel");
 const DistrictCoordinatesModel = require("../model/DistrictCoordinatesModel");
 const WeatherModel = require("../model/WeatherModel");
+const { countries, countryToCapitalMap, capitalToCountryMap } = require("../assests/countries");
+const CountryAirQuality = require("../model/CountryAqiModel");
 
 module.exports.fetchAndStoreAQIData = async () => {
     for (const district of districts) {
@@ -91,5 +93,48 @@ module.exports.fetchAndStoreAQIData = async () => {
       }
     } catch (error) {
       console.error(`Error fetching district coordinates:`, error.message);
+    }
+  };
+
+  module.exports.fetchAndStoreAQIDataCountry = async () => {
+    for (const countryOrCapital of countries) {
+      // Get the actual country name using the capital or use the country itself
+      const countryName = capitalToCountryMap[countryOrCapital] || countryOrCapital;
+      const cityName = countryToCapitalMap[countryName] || countryName;
+  
+      try {
+        // Fetch AQI data for the current capital or country
+        const response = await axios.get(
+          `https://api.api-ninjas.com/v1/airquality?city=${cityName}`,
+          {
+            headers: {
+              'X-Api-Key': process.env.API_NINJAS_KEY, // Use API key from environment variables
+            },
+          }
+        );
+  
+        // Map the response data to match the Mongoose model
+        const aqiData = {
+          countryName, // Save the country name in the database
+          // coAqi: response.data.CO.aqi,
+          // no2Aqi: response.data.NO2.aqi,
+          o3Aqi: response.data.O3.aqi,
+          // so2Aqi: response.data.SO2.aqi,
+          pm25Aqi: response.data['PM2.5'].aqi, // Use bracket notation for 'PM2.5'
+          // pm10Aqi: response.data.PM10.aqi,
+          overallAqi: response.data.overall_aqi,
+        };
+  
+        // Save the data to MongoDB
+        const newCountryAirQuality = new CountryAirQuality(aqiData);
+        await newCountryAirQuality.save();
+  
+        console.log(`Saved AQI data for ${countryName} (API call for ${cityName})`);
+      } catch (error) {
+        console.error(
+          `Error fetching or saving AQI data for ${countryName} (API call for ${cityName}):`,
+          error.message
+        );
+      }
     }
   };
