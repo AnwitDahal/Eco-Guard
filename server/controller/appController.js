@@ -3,6 +3,7 @@ const DistrictCoordinatesModel = require("../model/DistrictCoordinatesModel");
 const CityData = require("../model/PredictedAQIModel");
 const UserModel = require("../model/UserModel");
 const WeatherModel = require("../model/WeatherModel");
+const { sendAlertEmail } = require("../nodemailer/email");
 const { generateOTP, generateTokenAndSetCookie } = require("../utils/jwtconfiguration");
 const { hashPassword, verifyPassword } = require("../utils/password");
 const { fetchAndStoreDistrictCoordinates } = require("./coordinatesContoller");
@@ -299,33 +300,50 @@ module.exports.updateData = async (req, res) => {
   }
 };
 
-// module.exports.predictedAqi = async (req, res) => {
-//   const user = req.user; 
-//   // console.log(user);
-  
-//   try {
-//     if (!user) {
-//       return res
-//         .status(401)
-//         .json({ success: false, message: "User not authenticated" });
-//     }
 
-//     const district = user.address;
-    
-//     // Fetch data from the database using Mongoose
-//     const cityData = await CityData.findOne({ district });
+module.exports.checkPredictedData = async (req, res) => {
+  try {
+    // Fetch all users from the collection
+    const users = await UserModel.find({});
 
-    
+    // Create an array to store the results
+    const result = [];
 
-//     if (!cityData) {
-//       return res.status(404).json({ message: "City data not found" });
-//     }
+    for (const user of users) {
+      // Extract user's address
+      const userAddress = user.address;
 
-//     // Send the city data as a response
-//     res.status(200).json(cityData);
-//   } catch (error) {
-//     // Handle any potential errors
-//     console.error("Error fetching city data:", error);
-//     res.status(500).json({ message: "Internal server error" });
-//   }
-// };
+      // Fetch predicted AQI for the user's district
+      const aqiData = await CityData.findOne({ district: userAddress });
+
+      if (aqiData) {
+        // Scan all days in the predicted AQI data
+        aqiData.data.forEach(dayData => {
+          const day = dayData.day;
+          const lowAQI = dayData.details.aqi.low;
+          const highAQI = dayData.details.aqi.high;
+
+          // Check if AQI exceeds 150 on any day
+          if (highAQI > 150) {
+            // Call the function to send an alert email
+            sendAlertEmail(user.email, user.name, day, highAQI, user.address);
+          }
+        });
+      }
+    }
+
+    // Send a success response after processing all users
+    res.status(200).json({
+      message: "AQI check completed and emails sent where necessary.",
+      success: true
+    });
+
+  } catch (error) {
+    // Send an error response in case of failure
+    res.status(500).json({
+      message: "An error occurred while checking AQI.",
+      error: error.message,
+      success: false
+    });
+  }
+};

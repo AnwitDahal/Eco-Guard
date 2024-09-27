@@ -1,4 +1,4 @@
-const { signup, login, logout, saveDistrictAQI, saveDistrictCoordinates, saveDistrictWeather, checkAuth, updateData, predictedAqi } = require("../controller/appController");
+const { signup, login, logout, saveDistrictAQI, saveDistrictCoordinates, saveDistrictWeather, checkAuth, updateData, predictedAqi, checkPredictedData } = require("../controller/appController");
 const express=require('express');
 const { verifyToken } = require("../middlewares/verifyToken");
 const  router=express.Router();
@@ -18,5 +18,7 @@ router.get('/save-district-weather',saveDistrictWeather);
 router.get("/check-auth",verifyToken,checkAuth)
 
 router.post('/update-data',verifyToken,updateData)
+
+router.get('/check-predicted-data',checkPredictedData)
 
 module.exports = router;
