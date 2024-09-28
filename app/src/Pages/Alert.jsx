@@ -1,7 +1,13 @@
 import React from "react";
 import Input from "../Components/Input";
+import Select from 'react-select'
+
 
 const Alert = () => {
+  const options = [
+    { value: 'Email', label: 'Email' },
+    { value: 'SMS', label: 'SMS' },
+  ]
   return (
     <section className="flex justify-center items-center">
       <div className="bg-[hsl(201,16%,62%)] bg-opacity-20 shadow-2xl flex-col  rounded-[1.875rem] py-8 px-5 flex gap-6 w-[35rem] ">
@@ -16,7 +22,7 @@ const Alert = () => {
           <label htmlFor="AQI Threshold:" className="relative top-4">AQI Threshold</label>
           <Input type="text" placeholder="Address" />
           <label htmlFor="" className="relative top-4">Alert Method:</label>
-          <Input type="text" placeholder="AQI Threshold " />
+          <Select options={options} />
           <button className="bg-[#342753E6] rounded-[1.875rem]  text-center text-white py-4 px-6">
             Set Alert  
           </button> 

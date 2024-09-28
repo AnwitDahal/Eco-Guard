@@ -403,67 +403,79 @@ module.exports.countryOzone=async(req,res)=>{
   }
 };
 
-module.exports.orgSignUp=async(req,res)=>{
-   const { email, password, name, phNumber, address,type,regNum,image } = req.body;
-  
-  try {
-    if (!email || !password || !name || !phNumber || !address || !type || !regNum) {
-      throw new Error("All fields are required");
-    }
-    const orgAlreadyExists = await OrganizationModel.findOne({ email });
-    if (orgAlreadyExists) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Organization already exists" });
+module.exports.orgSignUp = async (req, res) => {
+  const uploadSingle = upload.single('image'); // Multer expects the 'image' field in form-data
+
+  uploadSingle(req, res, async function (err) {
+    if (err) {
+      return res.status(400).json({ success: false, message: err.message });
     }
 
-    const hash = await hashPassword(password);
+    const { email, password, name, phNumber, address, type, regNum } = req.body;
 
-    // Generating OTP for verification
-    const verificationToken = generateOTP();
+    try {
+      if (!email || !password || !name || !phNumber || !address || !type || !regNum) {
+        throw new Error("All fields are required");
+      }
 
-    const org = new OrganizationModel({
-      email,
-      password: hash,
-      phNumber,
-      address,
-      name,
-      type,
-      regNum,
-      verificationToken,
-      verificationTokenExpiresAt: Date.now() + 24 * 60 * 60 * 1000, // 24 hours
-    });
+      // Check if the organization already exists
+      const orgAlreadyExists = await OrganizationModel.findOne({ email });
+      if (orgAlreadyExists) {
+        return res.status(400).json({ success: false, message: "Organization already exists" });
+      }
 
-    await org.save();
-    const district = address;
-    const aqiData = await AirQualityModel.findOne({ district });
+      // Convert the uploaded image to base64
+      const image = req.file ? req.file.buffer.toString('base64') : null;
 
-    // Fetch weather data for the district
-    const weatherData = await WeatherModel.findOne({ district });
+      const hash = await hashPassword(password);
 
-    // Predict AQI (integrating predictedAqi logic)
-    const cityData = await CityData.findOne({ district });
-    if (!cityData) {
-      return res.status(404).json({ message: "City data not found" });
+      // Generating OTP for verification
+      const verificationToken = generateOTP();
+
+      // Create new organization document
+      const org = new OrganizationModel({
+        email,
+        password: hash,
+        phNumber,
+        address,
+        name,
+        type,
+        regNum,
+        image, // Save the base64 encoded image in the database
+        verificationToken,
+        verificationTokenExpiresAt: Date.now() + 24 * 60 * 60 * 1000, // 24 hours
+      });
+
+      // Save the organization document
+      await org.save();
+
+      const district = address;
+      const aqiData = await AirQualityModel.findOne({ district });
+      const weatherData = await WeatherModel.findOne({ district });
+      const cityData = await CityData.findOne({ district });
+
+      if (!cityData) {
+        return res.status(404).json({ message: "City data not found" });
+      }
+
+      // JWT token generation
+      generateTokenAndSetCookie(res, org._id);
+
+      // Respond with the user, AQI, weather, and city data
+      res.status(201).json({
+        success: true,
+        message: "Org created successfully",
+        user: {
+          ...org._doc,
+          password: undefined,
+        },
+        aqiData: aqiData || null,
+        weatherData: weatherData || null,
+        cityData: cityData || null,
+      });
+    } catch (error) {
+      console.error("Error during signup:", error);
+      return res.status(400).json({ success: false, message: error.message });
     }
-
-    // JWT token generation
-    generateTokenAndSetCookie(res, org._id);
-
-    // Respond with the user, AQI, weather, and city data
-    res.status(201).json({
-      success: true,
-      message: "Org created successfully",
-      user: {
-        ...org._doc,
-        password: undefined,
-      },
-      aqiData: aqiData || null,
-      weatherData: weatherData || null,
-      cityData: cityData || null,  // Include the city data in the response
-    });
-  } catch (error) {
-    console.error("Error during signup:", error);
-    return res.status(400).json({ success: false, message: error.message });
-  }
+  });
 };

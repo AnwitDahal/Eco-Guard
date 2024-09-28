@@ -8,6 +8,7 @@ import AirMonitor from "./Pages/AirMonitor";
 import Alert from "./Pages/Alert";
 import Setting from "./Pages/Setting";
 import AddressAQIData from "./Components/AddressAQIData";
+import SignUpOrg from "./Pages/SignUpOrg";
 
 const App = () => {
   return (
@@ -24,6 +25,7 @@ const App = () => {
         <Route path="alert" element={<Alert />} />
         <Route path="setting" element={<Setting />} />
       </Route>
+      <Route path="/signuporg" element={<SignUpOrg/>}/>
     </Routes>
   );
 };
