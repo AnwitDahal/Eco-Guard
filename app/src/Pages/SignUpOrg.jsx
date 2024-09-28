@@ -10,15 +10,16 @@ const SignUpOrg = () => {
                     <h1 className='text-center font-semibold text-3xl text-white'>Sign Up For Organization  !</h1>
                 </div>
                 <form className='flex  flex-col gap-6'>
-                    
                     <Input type='text' placeholder='Name'/>
                     <Input type='email' placeholder='Enter Email'/>
                     <Input type='password' placeholder='Password'/>
                     <Input type='text' placeholder='Mobile Number'/>
                     <Input type='text' placeholder='Address'/>
+                    <Input type='text' placeholder='Registration Number/Certification Number'/>
+                    <Input type='file' placeholder="Official Certification"/>
                     <button className='bg-[#342753E6] rounded-[1.875rem]  text-center text-white py-4 px-6'>Sign Up</button>
                 </form>
-                <p className=' text-center font-me'>Already have an account?  <span className='font-semibold cursor-pointer' 
+                <p className=' text-center'>Already have an account?  <span className='font-semibold cursor-pointer' 
                 onClick={()=>navigate('/login')}>Log In</span></p>
             </div>
         </div>

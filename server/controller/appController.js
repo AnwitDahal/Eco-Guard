@@ -1,6 +1,7 @@
 const AirQualityModel = require("../model/AirQualityModel");
 const CountryAirQuality = require("../model/CountryAqiModel");
 const DistrictCoordinatesModel = require("../model/DistrictCoordinatesModel");
+const Last_AQIModel = require("../model/Last_AQIModel");
 const OrganizationModel = require("../model/OrganizationModel");
 const CityData = require("../model/PredictedAQIModel");
 const UserModel = require("../model/UserModel");
@@ -12,6 +13,11 @@ const { fetchAndStoreDistrictCoordinates } = require("./coordinatesContoller");
 const { fetchAndStoreAQIData, fetchAndStoreDistrictWeather, fetchAndStoreAQIDataCountry } = require("./weatherController");
 
 const axios=require('axios')
+const multer = require('multer');
+const storage = multer.memoryStorage(); // Store the file in memory (useful if you are converting 
+const upload = multer({ storage });
+const { spawn } = require('child_process');
+const { generateChallenges } = require("../utils/challenges");
 
 module.exports.signup = async (req, res) => {
   const { email, password, name, phNumber, address } = req.body;
@@ -411,11 +417,15 @@ module.exports.orgSignUp = async (req, res) => {
       return res.status(400).json({ success: false, message: err.message });
     }
 
-    const { email, password, name, phNumber, address, type, regNum } = req.body;
+    const { email, password, name, phNumber, district, type, regNum } = req.body;
 
     try {
-      if (!email || !password || !name || !phNumber || !address || !type || !regNum) {
+      if (!email || !password || !name || !phNumber || !district || !type || !regNum) {
         throw new Error("All fields are required");
+      }
+
+      if (!req.file) {
+        throw new Error("Image is required");
       }
 
       // Check if the organization already exists
@@ -437,11 +447,11 @@ module.exports.orgSignUp = async (req, res) => {
         email,
         password: hash,
         phNumber,
-        address,
+        district,
         name,
         type,
         regNum,
-        image, // Save the base64 encoded image in the database
+        Certiimage:image, // Save the base64 encoded image in the database
         verificationToken,
         verificationTokenExpiresAt: Date.now() + 24 * 60 * 60 * 1000, // 24 hours
       });
@@ -449,7 +459,6 @@ module.exports.orgSignUp = async (req, res) => {
       // Save the organization document
       await org.save();
 
-      const district = address;
       const aqiData = await AirQualityModel.findOne({ district });
       const weatherData = await WeatherModel.findOne({ district });
       const cityData = await CityData.findOne({ district });
@@ -478,4 +487,174 @@ module.exports.orgSignUp = async (req, res) => {
       return res.status(400).json({ success: false, message: error.message });
     }
   });
+};
+
+
+module.exports.lastSeven = async () => { 
+  try {
+    // Retrieve all organizations
+    const organizations = await OrganizationModel.find();
+
+    if (!organizations || organizations.length === 0) {
+      return { success: false, message: 'No organizations found.' };
+    }
+
+    // To store the result for each organization
+    const organizationAqiData = [];
+
+    // Loop through each organization and retrieve AQI data for its district
+    for (const org of organizations) {
+      const { district, name } = org; // Assuming organization has 'district' and 'name' fields
+      console.log(district);
+      
+      // Retrieve AQI data for the district
+      const result = await Last_AQIModel.findOne({ district });
+
+      if (!result || result.data.length === 0) {
+        // If no data is found for the district, push an empty result
+        organizationAqiData.push({
+          organization: name,
+          district: district,
+          message: 'No AQI data found for the specified district.'
+        });
+        continue; // Move to the next organization
+      }
+
+      // Sort the data array by date in descending order
+      const sortedData = result.data.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+      // Get the last seven days' worth of data
+      const lastSevenDaysData = sortedData.slice(0, 7);
+
+      // Store the AQI data for this organization
+      organizationAqiData.push({
+        organization: name,
+        district: district,
+        aqiData: lastSevenDaysData
+      });
+    }
+
+    // Return the aggregated response
+    return { success: true, data: organizationAqiData };
+
+  } catch (error) {
+    console.error(error);
+    return { success: false, message: 'An error occurred while retrieving the data.' };
+  }
+};
+
+module.exports.nodetoPython = async (req, res) => { 
+  try {
+    // Call the lastSeven function and store the response
+    const aqiResponse = await module.exports.lastSeven(); 
+
+    // Ensure aqiResponse contains the AQI data
+    if (!aqiResponse.success || !aqiResponse.data) {
+      return res.status(404).json({ message: 'No AQI data found.' });
+    }
+
+    // Prepare the input for the Python script
+    const input = JSON.stringify(aqiResponse.data);
+
+    // Spawn a child process to run the Python script
+    const pythonProcess = spawn('python', ['../model/predict_aqi.py']);
+
+    // Send input to the Python script
+    pythonProcess.stdin.write(input);
+    pythonProcess.stdin.end();
+
+    // Flag to check if the response has already been sent
+    let responseSent = false;
+
+    // Collect data from the script
+    pythonProcess.stdout.on('data', (data) => {
+      if (responseSent) return; // Prevent sending a second response
+      try {
+        const result = JSON.parse(data.toString()).result;
+        console.log(`Prediction result: ${result}`);
+        res.json({ result });
+        responseSent = true; // Mark response as sent
+      } catch (parseError) {
+        console.error('Error parsing Python response:', parseError);
+        if (!responseSent) {
+          res.status(500).json({ message: 'Error processing Python response.' });
+          responseSent = true;
+        }
+      }
+    });
+
+    // Handle errors from Python script
+    pythonProcess.stderr.on('data', (data) => {
+      console.error(`Python script error: ${data}`);
+      if (!responseSent) {
+        res.status(500).json({ message: 'Error in Python script execution.' });
+        responseSent = true;
+      }
+    });
+
+    // Handle script exit
+    pythonProcess.on('close', (code) => {
+      if (code !== 0 && !responseSent) {
+        console.error(`Python process exited with code ${code}`);
+        res.status(500).json({ message: 'Error in Python script execution.' });
+      }
+    });
+
+  } catch (error) {
+    console.error('Error fetching AQI data:', error);
+    if (!responseSent) {
+      res.status(500).json({ message: 'Error retrieving AQI data.' });
+    }
+  }
+};
+
+
+module.exports.generateChallengesForOrgs = async (req, res) => {
+  try {
+    // Fetch all organizations
+    const organizations = await OrganizationModel.find();
+    // console.log(organizations);
+    
+    if (!organizations.length) {
+      return res.status(404).json({ message: 'No organizations found.' });
+    }
+
+    let results = [];
+
+    // Loop through each organization
+    for (let org of organizations) {
+      const { district, name } = org;
+
+      // Fetch predicted AQI for the organization's district
+      const aqiPrediction = await CityData.findOne({ district });
+      
+
+      
+      // Check if aqiData has valid data
+      const latestAQI = aqiPrediction.aqiData && aqiPrediction.aqiData.length > 0 
+        ? aqiPrediction.aqiData[0].details.overall_aqi 
+        : null;
+
+      
+
+      const challenges = generateChallenges(latestAQI, district);
+      
+      console.log(challenges);
+      results.push({
+        organization: name,
+        district,
+        predicted_aqi: latestAQI,
+        challenges
+      });
+    }
+
+    res.json({
+      success: true,
+      data: results
+    });
+
+  } catch (error) {
+    console.error('Error generating challenges:', error);
+    res.status(500).json({ message: 'Error generating challenges.' });
+  }
 };

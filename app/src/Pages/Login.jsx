@@ -6,7 +6,7 @@ const Login = () => {
   const navigate=useNavigate();
   return (
     <div className="bg-bluish-radial-gradient from-[#71BCE1] to-[#087EB8]  min-h-screen flex justify-center items-center ">
-      <div className="bg-[hsl(199,40%,82%)] bg-opacity-20 shadow-2xl  flex-col  rounded-[1.875rem] py-8 px-5 flex gap-6 w-[30rem]">
+      <div className="bg-[hsl(201,22%,68%)] bg-opacity-20 shadow-2xl  flex-col  rounded-[1.875rem] py-8 px-5 flex gap-6 w-[30rem]">
         <div className="">
           <h1 className="text-center font-semibold text-3xl text-white">
             Welcome Back!
@@ -24,7 +24,7 @@ const Login = () => {
             Log In
           </button>
         </form>
-        <p className=" text-center font-me">
+        <p className=" text-center ">
           Don't have an account? <span className="font-semibold cursor-pointer" onClick={()=>navigate('/signupindie')}>Sign Up</span>
         </p>
       </div>
