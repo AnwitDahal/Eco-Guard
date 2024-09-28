@@ -1,6 +1,6 @@
 import React from "react";
 
-const Input = ({ ...props }) => {
+const Input = ({...props }) => {
   return (
     <div >
       <div className="pointer-events-none">
