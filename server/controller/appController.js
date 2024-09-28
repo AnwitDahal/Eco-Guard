@@ -1,6 +1,7 @@
 const AirQualityModel = require("../model/AirQualityModel");
 const CountryAirQuality = require("../model/CountryAqiModel");
 const DistrictCoordinatesModel = require("../model/DistrictCoordinatesModel");
+const OrganizationModel = require("../model/OrganizationModel");
 const CityData = require("../model/PredictedAQIModel");
 const UserModel = require("../model/UserModel");
 const WeatherModel = require("../model/WeatherModel");
@@ -399,5 +400,70 @@ module.exports.countryOzone=async(req,res)=>{
     // Handle error
     console.error('Error fetching country AQI data:', error);
     res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
+module.exports.orgSignUp=async(req,res)=>{
+   const { email, password, name, phNumber, address,type,regNum,image } = req.body;
+  
+  try {
+    if (!email || !password || !name || !phNumber || !address || !type || !regNum) {
+      throw new Error("All fields are required");
+    }
+    const orgAlreadyExists = await OrganizationModel.findOne({ email });
+    if (orgAlreadyExists) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Organization already exists" });
+    }
+
+    const hash = await hashPassword(password);
+
+    // Generating OTP for verification
+    const verificationToken = generateOTP();
+
+    const org = new OrganizationModel({
+      email,
+      password: hash,
+      phNumber,
+      address,
+      name,
+      type,
+      regNum,
+      verificationToken,
+      verificationTokenExpiresAt: Date.now() + 24 * 60 * 60 * 1000, // 24 hours
+    });
+
+    await org.save();
+    const district = address;
+    const aqiData = await AirQualityModel.findOne({ district });
+
+    // Fetch weather data for the district
+    const weatherData = await WeatherModel.findOne({ district });
+
+    // Predict AQI (integrating predictedAqi logic)
+    const cityData = await CityData.findOne({ district });
+    if (!cityData) {
+      return res.status(404).json({ message: "City data not found" });
+    }
+
+    // JWT token generation
+    generateTokenAndSetCookie(res, org._id);
+
+    // Respond with the user, AQI, weather, and city data
+    res.status(201).json({
+      success: true,
+      message: "Org created successfully",
+      user: {
+        ...org._doc,
+        password: undefined,
+      },
+      aqiData: aqiData || null,
+      weatherData: weatherData || null,
+      cityData: cityData || null,  // Include the city data in the response
+    });
+  } catch (error) {
+    console.error("Error during signup:", error);
+    return res.status(400).json({ success: false, message: error.message });
   }
 };

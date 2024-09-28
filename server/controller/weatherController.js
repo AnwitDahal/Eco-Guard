@@ -32,8 +32,11 @@ module.exports.fetchAndStoreAQIData = async () => {
         };
   
         // Save the data to MongoDB
-        const newAirQualityModel = new AirQualityModel(aqiData);
-        await newAirQualityModel.save();
+        await AirQualityModel.findOneAndUpdate(
+          { district }, 
+          aqiData, 
+          { upsert: true, new: true } // upsert creates if not found, new returns the updated document
+        );
   
         console.log(`Saved AQI data for ${district}`);
       } catch (error) {
@@ -80,8 +83,11 @@ module.exports.fetchAndStoreAQIData = async () => {
           };
   
           // Save the weather data to MongoDB
-          const newWeatherEntry = new WeatherModel(weatherData);
-          await newWeatherEntry.save();
+          await WeatherModel.findOneAndUpdate(
+            { district: districtName }, 
+            weatherData, 
+            { upsert: true, new: true } // upsert creates if not found
+          );
   
           console.log(`Saved weather data for ${districtName}: Temp ${response.data.temp}, Humidity ${response.data.humidity}`);
         } catch (error) {
@@ -126,8 +132,11 @@ module.exports.fetchAndStoreAQIData = async () => {
         };
   
         // Save the data to MongoDB
-        const newCountryAirQuality = new CountryAirQuality(aqiData);
-        await newCountryAirQuality.save();
+        await CountryAirQuality.findOneAndUpdate(
+          { countryName }, 
+          aqiData, 
+          { upsert: true, new: true }
+        );
   
         console.log(`Saved AQI data for ${countryName} (API call for ${cityName})`);
       } catch (error) {
