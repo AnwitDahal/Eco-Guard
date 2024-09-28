@@ -657,4 +657,55 @@ module.exports.generateChallengesForOrgs = async (req, res) => {
     console.error('Error generating challenges:', error);
     res.status(500).json({ message: 'Error generating challenges.' });
   }
-};
+}
+
+module.exports.loginOrg=async (req,res)=>{
+  const { email, password } = req.body;
+  try {
+    const user = await OrganizationModel.findOne({ email });
+
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Email or Password",
+      });
+    }
+
+    const passwordValidate =await verifyPassword(user.password, password);
+    if (!passwordValidate) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Email or Password",
+      });
+    }
+    generateTokenAndSetCookie(res, user._id);
+
+    await user.save();
+
+    const district = user.address;
+
+    const aqiData = await AirQualityModel.findOne({ district });
+
+    const weatherData = await WeatherModel.findOne({ district });
+
+    const cityData = await CityData.findOne({ district });
+
+    return res.status(200).json({
+      success: true,
+      message: "LoggedIn Successfully",
+      user: {
+        ...user._doc,
+        password: undefined,
+      },
+      aqiData: aqiData || null,
+      weatherData: weatherData || null,
+      cityData: cityData || null,  // Include the city data in the response
+    });
+  } catch (err) {
+    console.log("Error in Login !:", err);
+    res.status(400).json({
+      success: false,
+      message: err.message,
+    });
+  }
+}
