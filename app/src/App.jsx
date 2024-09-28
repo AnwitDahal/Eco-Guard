@@ -7,6 +7,7 @@ import UserDashboard from "./Pages/UserDashboard";
 import AirMonitor from "./Pages/AirMonitor";
 import Alert from "./Pages/Alert";
 import Setting from "./Pages/Setting";
+import AddressAQIData from "./Components/AddressAQIData";
 
 const App = () => {
   return (
@@ -14,7 +15,11 @@ const App = () => {
       <Route path="/" element={<Home />} />
       <Route path="/login" element={<Login />} />
       <Route path="/signupindie" element={<SignUpIndie />} />
-      <Route path="/user" element={<UserDashboard />} >
+      
+      {/* Nested routes under /user */}
+      <Route path="/user" element={<UserDashboard />}>
+        {/* Default route when user navigates to /user */}
+        <Route index element={<AddressAQIData />} />
         <Route path="air-monitor" element={<AirMonitor />} />
         <Route path="alert" element={<Alert />} />
         <Route path="setting" element={<Setting />} />

@@ -36,26 +36,27 @@ export const iconsMap = {
 
 export const userOptionsList = [
     {
-        Icon: "layout-dashboard",
-        title: "Dashboard",
-        path: "/user"
+      Icon: "layout-dashboard",
+      title: "Dashboard",
+      path: "/user", // Home dashboard path
     },
     {
-        Icon: "monitor",
-        title: "Air Monitor",
-        path: "/user/air-monitor", 
+      Icon: "monitor",
+      title: "Air Monitor",
+      path: "/user/air-monitor", // Path for Air Monitor
     },
     {
-        Icon: "contact",
-        title: "Alert",
-        path: "/user/alert",
+      Icon: "contact",
+      title: "Alert",
+      path: "/user/alert", // Path for Alert
     },
     {
-        Icon: "settings",
-        title: "Setting",
-        path: "/user/setting",
+      Icon: "settings",
+      title: "Setting",
+      path: "/user/setting", // Path for Settings
     },
-];
+  ];
+  
 
 export const UserDashboardIcons = {
     "waves": Waves,
@@ -71,35 +72,30 @@ export const weatherData=[
         title:"Air Quality Index (AQI)",
         value:"29|Excellent",
         status:"The current air quality is good for outdoor exercise",
-        width:"555px"
     },    
     {
         icon:"cloud",
         title:"PM2.5",
         value:"5.11μ/m3",
         status:"Good",
-        width:"440px"
     },    
     {
         icon:"wind",
         title:"Wind",
         value:"3.4km/h",
         status:"lorem",
-        width:"229px",
     },    
     {
         icon:"thermometer",
         title:"Temperature",
         value:"21",
         status:"ipsum",
-        width:"229px",
     },    
     {
         icon:"droplet",
         title:"Humidity",
         value:"29%",
         status:"Wetter environment  ",
-        width:"229px",
     },    
 ]
 

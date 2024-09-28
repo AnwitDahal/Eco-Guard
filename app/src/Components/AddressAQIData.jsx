@@ -23,6 +23,7 @@ const AddressAQIData = () => {
             <div
               key={index}
               className="bg-custom-gray shadow-custom flex flex-col gap-5 p-5 rounded-[1.875rem] text-white h-48"
+              
             >
               <div className="flex">
                 {IconComponent && (

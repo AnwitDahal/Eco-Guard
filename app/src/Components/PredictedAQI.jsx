@@ -3,8 +3,8 @@ import { predictedData } from "../Data";
 
 const PredictedAQI = () => {
   return (
-    <section className="pl-96">
-      <div className="">
+    <section>
+      <div>
         <h1>Weather for next 7 days</h1>
       </div>
       <div className="flex ">
