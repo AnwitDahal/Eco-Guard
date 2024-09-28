@@ -494,45 +494,59 @@ module.exports.lastSeven = async () => {
   try {
     // Retrieve all organizations
     const organizations = await OrganizationModel.find();
+    // console.log(organizations);
+    
 
     if (!organizations || organizations.length === 0) {
       return { success: false, message: 'No organizations found.' };
     }
 
-    // To store the result for each organization
     const organizationAqiData = [];
 
-    // Loop through each organization and retrieve AQI data for its district
     for (const org of organizations) {
-      const { district, name } = org; // Assuming organization has 'district' and 'name' fields
-      console.log(district);
+      const { district, name } = org;
+      
       
       // Retrieve AQI data for the district
       const result = await Last_AQIModel.findOne({ district });
 
-      if (!result || result.data.length === 0) {
-        // If no data is found for the district, push an empty result
+
+      if (!result || !result.data || result.data.length === 0) {
         organizationAqiData.push({
           organization: name,
           district: district,
           message: 'No AQI data found for the specified district.'
         });
-        continue; // Move to the next organization
+        continue;
       }
 
       // Sort the data array by date in descending order
       const sortedData = result.data.sort((a, b) => new Date(b.date) - new Date(a.date));
 
-      // Get the last seven days' worth of data
-      const lastSevenDaysData = sortedData.slice(0, 7);
+      // Get the last seven days' worth of data (ensure at least 7 days are present)
+      const lastSevenDaysData = sortedData.slice(0, 7).map((entry) => {
+        return {
+          date: entry.date,  // Ensure date is formatted correctly
+          details: {
+            "Pm2.5": entry.details.Pm2_5 || null,
+            "Pm10": entry.details.Pm10 || null,
+            "No2": entry.details.No2 || null,
+            "So2": entry.details.So2 || null,
+            "Co": entry.details.Co || null,
+            "O3": entry.details.O3 || null,
+            "overall_aqi": entry.details.overall_aqi || null
+          }
+        };
+      });
 
       // Store the AQI data for this organization
       organizationAqiData.push({
-        organization: name,
         district: district,
-        aqiData: lastSevenDaysData
+        data: lastSevenDaysData
       });
     }
+    // console.log(organizationAqiData);
+    
 
     // Return the aggregated response
     return { success: true, data: organizationAqiData };
@@ -547,6 +561,7 @@ module.exports.nodetoPython = async (req, res) => {
   try {
     // Call the lastSeven function and store the response
     const aqiResponse = await module.exports.lastSeven(); 
+    console.log("AQI Response Data: ", JSON.stringify(aqiResponse.data, null, 2));  // Enhanced logging
 
     // Ensure aqiResponse contains the AQI data
     if (!aqiResponse.success || !aqiResponse.data) {
