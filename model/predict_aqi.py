@@ -14,11 +14,11 @@ load_dotenv()
 # Get MongoDB URI from the environment variable
 mongo_uri = os.getenv("MONGO_URI")
 
-# MongoDB connection setup
+# MongoDB connection setup (optional since we are not using it anymore)
 try:
     client = MongoClient(mongo_uri)
     db = client['test']  # Correct database name
-    collection = db['predicted_aqi']  # Collection to store forecasted AQI
+    collection = db['predicted_aqi']  # Collection to store forecasted AQI (not used anymore)
     print("Connected to MongoDB successfully")
 except errors.ConnectionError as e:
     print(f"Failed to connect to MongoDB: {e}")
@@ -78,7 +78,7 @@ def predict_aqi_from_json(json_input, range_diff=5):
             aqi_details["overall_aqi"]
         ])
         last_date = record["date"]  
-   
+    
     last_week_data = np.array(last_week_data)
     scaler = MinMaxScaler()
     scaled_data = scaler.fit_transform(last_week_data)
@@ -104,24 +104,11 @@ def predict_aqi_from_json(json_input, range_diff=5):
             "high_aqi": round(high_aqi, 2)
         })
 
-    try:
-        # Update the record if district exists, otherwise insert a new record
-        update_result = collection.update_one(
-            {"district": district},
-            {"$set": result},
-            upsert=True
-        )
-        
-        if update_result.matched_count > 0:
-            print(f"Updated the existing record for district: {district}")
-        else:
-            print(f"Inserted new record for district: {district}")
-    
-    except errors.PyMongoError as e:
-        print(f"Failed to update/insert prediction data into MongoDB: {e}")
+    return json.dumps(result)  # Return the result as a JSON string
 
 # Main entry point
 if __name__ == "__main__":
     input_json = sys.argv[1]  # Read input JSON from command-line arguments
     json_input = json.loads(input_json)  # Parse JSON string
-    predict_aqi_from_json(json_input)
+    output_json = predict_aqi_from_json(json_input)  # Get the JSON response
+    print(output_json)  # Print the output JSON to stdout
