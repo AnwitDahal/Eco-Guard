@@ -19,7 +19,7 @@ cron.schedule('3 1 * * *', async () => {
   });
 
 
-  cron.schedule('51 2 * * *', async () => {
+  cron.schedule('06 15 * * *', async () => {
     try {
       console.log("Running AQI prediction check at 2 AM");
       

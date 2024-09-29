@@ -1,20 +1,20 @@
-import { keyfeatureimg1 } from "./Images";
-import { LayoutDashboard, Monitor, Contact, Settings,Waves,Cloud,Wind,Thermometer,Droplet } from 'lucide-react';
-import {user} from useAuthStore;
+import { keyfeatureimg2, keyfeatureimg0,keyfeatureimg3 } from "./Images";
+import { LayoutDashboard, Monitor, Contact, Settings,Waves,Cloud,Wind,Thermometer,Droplet,Trophy} from 'lucide-react';
+
 
 export const KeyFeaturesPart=[
     {
-        image:keyfeatureimg1,
+        image:keyfeatureimg0,
         title:'Real-Time Monitoring',
         text:'Track air quality levels in your city with up-to-the-minute data.'
     },
     {
-        image:keyfeatureimg1,
+        image:keyfeatureimg2,
         title:"Health Alerts",
         text:'Receive instant alerts when air quality deteriorates in your area.'
     },
     {
-        image:keyfeatureimg1,
+        image:keyfeatureimg3,
         title:'Health Recommendations',
         text:'Get personalized advice on how to protect your health based on current air conditions.'
     }
@@ -32,6 +32,7 @@ export const iconsMap = {
     "monitor": Monitor,
     "contact": Contact,
     "settings": Settings,
+    "trophy":Trophy
 
 };
 
@@ -56,6 +57,11 @@ export const userOptionsList = [
       title: "Setting",
       path: "/user/setting", // Path for Settings
     },
+    {
+        Icons:"trophy",
+        title:"Leaderboard",
+        path:"/user/leaderboard"
+    }
   ];
   
 

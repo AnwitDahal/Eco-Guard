@@ -1,4 +1,4 @@
-const { signup, login, logout, saveDistrictAQI, saveDistrictCoordinates, saveDistrictWeather, checkAuth, updateData, checkPredictedData, saveAllCountryAQI, countryAQI, countryPm2_5, countryOzone, orgSignUp, lastSeven, nodetoPython, generateChallengesForOrgs, challengePhoto, loginOrg } = require("../controller/appController");
+const { signup, login, logout, saveDistrictAQI, saveDistrictCoordinates, saveDistrictWeather, checkAuth, updateData, checkPredictedData, saveAllCountryAQI, countryAQI, countryPm2_5, countryOzone, orgSignUp, lastSeven, nodetoPython, generateChallengesForOrgs, challengePhoto, loginOrg, pointbyAdmin, leaderboard } = require("../controller/appController");
 const express=require('express');
 const { verifyToken, verifyTokenForUser, verifyTokenForOrg } = require("../middlewares/verifyToken");
 const  router=express.Router();
@@ -38,5 +38,9 @@ router.post('/nodetopy',nodetoPython)
 router.get('/challenges',generateChallengesForOrgs)
 
 router.post('/loginOrg',loginOrg);
+
+router.post('/pointsAdmin',pointbyAdmin)
+
+router.get('/leaderboard',leaderboard);
 
 module.exports = router;

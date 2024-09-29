@@ -13,11 +13,15 @@ const { fetchAndStoreDistrictCoordinates } = require("./coordinatesContoller");
 const { fetchAndStoreAQIData, fetchAndStoreDistrictWeather, fetchAndStoreAQIDataCountry } = require("./weatherController");
 
 const axios=require('axios')
+require('dotenv').config();
 const multer = require('multer');
 const storage = multer.memoryStorage(); // Store the file in memory (useful if you are converting 
 const upload = multer({ storage });
 const { spawn } = require('child_process');
 const { generateChallenges } = require("../utils/challenges");
+
+
+
 
 module.exports.signup = async (req, res) => {
   const { email, password, name, phNumber, address } = req.body;
@@ -417,14 +421,14 @@ module.exports.orgSignUp = async (req, res) => {
       return res.status(400).json({ success: false, message: err.message });
     }
 
-    const { email, password, name, phNumber, district, type, regNum } = req.body;
+    const { email, password, phNumber, district, type, regNum,name } = req.body;
 
     try {
       if (!email || !password || !name || !phNumber || !district || !type || !regNum) {
         throw new Error("All fields are required");
       }
 
-      if (!req.file) {
+      if (!req.file) {  
         throw new Error("Image is required");
       }
 
@@ -723,3 +727,58 @@ module.exports.loginOrg=async (req,res)=>{
     });
   }
 }
+
+module.exports.pointbyAdmin=async(req,res)=>{
+  try {
+    const { organization, points } = req.body;
+
+    // Validate input
+    if (!organization || typeof points !== 'number') {
+        return res.status(400).json({ message: 'Invalid input. Please provide a valid organization identifier and points.' });
+    }
+
+    // Update the organization's points
+    const updatedOrg = await OrganizationModel.findOneAndUpdate(
+        { name: organization }, // Assuming you're using email as the identifier, adjust if necessary
+        { $set: { points } },
+        { new: true, runValidators: true }
+    );
+
+    // Check if organization was found and updated
+    if (!updatedOrg) {
+        return res.status(404).json({ message: 'Organization not found.' });
+    }
+
+    // Respond with the updated organization data
+    return res.status(200).json({
+        message: 'Points updated successfully.',
+        organization: updatedOrg
+    });
+} catch (error) {
+    console.error("Error updating organization points:", error.message);
+    return res.status(500).json({ message: 'Server error. Please try again later.' });
+}
+};
+
+module.exports.leaderboard=async(req,res)=>{
+  try {
+    // Retrieve the top 3 organizations sorted by points in descending order
+    const topOrgs = await OrganizationModel.find()
+        .sort({ points: -1 }) // Sort by points in descending order
+        .limit(3); // Limit to top 3 results
+
+    // Check if any organizations were found
+    if (topOrgs.length === 0) {
+        return res.status(404).json({ message: 'No organizations found.' });
+    }
+
+    // Respond with the top organizations data
+    return res.status(200).json({
+        message: 'Top 3 organizations retrieved successfully.',
+        leaderboard: topOrgs
+    });
+} catch (error) {
+    console.error("Error retrieving leaderboard:", error.message);
+    return res.status(500).json({ message: 'Server error. Please try again later.' });
+}
+};

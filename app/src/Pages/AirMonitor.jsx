@@ -5,8 +5,10 @@ const AirMonitor = () => {
   return (
     <section>
       <div className=''>
-        <div className='px-3'>
-          Current Location: Kathmandu, Nepal
+        <div className='px-3 text-xl'>
+          Current Location: <span className='font-semibold'>
+            Kathmandu, Nepal
+            </span>
         </div>
         <MapPart/>  
 

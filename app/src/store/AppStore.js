@@ -12,6 +12,7 @@ export const useAuthStore = create((set) => ({
 	isLoading: false,
 	isCheckingAuth: true,
 	message: null,
+	aqiData:null,
 
 	signup: async (email, password, name, phNumber, address) => {
 		set({ isLoading: true, error: null });
@@ -28,9 +29,13 @@ export const useAuthStore = create((set) => ({
 		set({ isLoading: true, error: null });
 		try {
 			const response = await axios.post(`${API_URL}/login`, { email, password });
+			localStorage.setItem('token', response.data.token);
 			set({
 				isAuthenticated: true,
 				user: response.data.user,
+				weather:response.data.weatherData,
+				city:response.data.cityData,
+				aqiData:response.data.aqiData,
 				error: null,
 				isLoading: false,
 			});
@@ -69,8 +74,34 @@ export const useAuthStore = create((set) => ({
 		} catch (error) {
 			set({ error: null, isCheckingAuth: false, isAuthenticated: false });
 		}
-	}
-
-
-	
+	},
+	fetchAqiData: async () => {
+		set({ isLoading: true, error: null });
+		try {
+		  const endpoint = `${API_URL}/country-aqi`; // Fetch overall AQI data
+		  const response = await axios.get(endpoint);
+		  set({ aqiData: response.data, isLoading: false });
+		} catch (error) {
+		  set({
+			error: error.response?.data?.message || "Error fetching AQI data",
+			isLoading: false,
+		  });
+		  throw error; // Optionally, you can handle this error in the component
+		}
+	  },
+	  fetchLeaderboardData: async () => {
+		set({ isLoading: true, error: null });
+		try {
+		  const endpoint = `${API_URL}/leaderboard`;
+		  const response = await axios.get(endpoint);
+		  set({ leaderboardData: response.data.leaderboard, isLoading: false }); // Store leaderboard data
+		} catch (error) {
+		  set({
+			error: error.response?.data?.message || "Error fetching leaderboard data",
+			isLoading: false,
+		  });
+		  throw error;
+		}
+	},
+	 
 }))

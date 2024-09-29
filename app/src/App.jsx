@@ -10,10 +10,10 @@ import Setting from "./Pages/Setting";
 import AddressAQIData from "./Components/AddressAQIData";
 import SignUpOrg from "./Pages/SignUpOrg";
 import Choosing from "./Pages/Choosing";
-import { useAuthStore } from './store/AppStore';
+import { useAuthStore } from "./store/AppStore";
 
 const ProtectedRoutes = ({ children }) => {
-  const { isAuthenticated,user } = useAuthStore();
+  const { isAuthenticated, user } = useAuthStore();
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
@@ -26,11 +26,10 @@ const ProtectedRoutes = ({ children }) => {
   return children;
 };
 
-
 // Redirecting authenticated users to the home page
 
 const App = () => {
-  const { isChecking, checkAuth } = useAuthStore();
+  const { checkAuth } = useAuthStore();
 
   useEffect(() => {
     checkAuth();
@@ -41,19 +40,49 @@ const App = () => {
       <Route path="/" element={<Home />} />
       <Route path="/login" element={<Login />} />
       <Route path="/choosing" element={<Choosing />} />
-  
+
       {/* Nested routes under /user */}
-      <Route path="/user" element={
-        <ProtectedRoutes>
-          <UserDashboard />
-         </ProtectedRoutes>
-      }>
-        <Route index element={<AddressAQIData />} />
-        <Route path="air-monitor" element={<AirMonitor />} />
-        <Route path="alert" element={<Alert />} />
-        <Route path="setting" element={<Setting />} />
+      <Route
+        path="/user"
+        element={
+          <ProtectedRoutes>
+            <UserDashboard />
+          </ProtectedRoutes>
+        }
+      >
+        <Route path='/user'
+          element={
+            <ProtectedRoutes>
+              <AddressAQIData />
+            </ProtectedRoutes>
+          }
+        />
+        <Route
+          path="air-monitor"
+          element={
+            <ProtectedRoutes>
+              <AirMonitor />
+            </ProtectedRoutes>
+          }
+        />
+        <Route
+          path="alert"
+          element={
+            <ProtectedRoutes>
+              <Alert />
+            </ProtectedRoutes>
+          }
+        />
+        <Route
+          path="setting"
+          element={
+            <ProtectedRoutes>
+              <Setting />
+            </ProtectedRoutes>
+          }
+        />
       </Route>
-  
+
       <Route path="/signuporg" element={<SignUpOrg />} />
       <Route path="/signupindie" element={<SignUpIndie />} />
     </Routes>

@@ -20,7 +20,7 @@ const Alert = () => {
           <label htmlFor="" className="relative top-4">Location</label>
           <Input type="text" placeholder="Location: Eg.: Kathmandu" />
           <label htmlFor="AQI Threshold:" className="relative top-4">AQI Threshold</label>
-          <Input type="text" placeholder="Address" />
+          <Input type="text" placeholder="AQI Value" />
           <label htmlFor="" className="relative top-4">Alert Method:</label>
           <Select options={options} />
           <button className="bg-[#342753E6] rounded-[1.875rem]  text-center text-white py-4 px-6">

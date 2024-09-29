@@ -1,9 +1,10 @@
 import React from 'react'
+import { logoEco } from '../Images'
 
 const Header = () => {
   return (
     <header className='mt-8'>
-        <h1 className='ml-8 text-[#5A7302] text-[2.625rem] font-bold'>EcoGuard</h1>
+      <img src={logoEco} alt="" height={170} width={170} className='pl-7' />
     </header>
   )
 }
