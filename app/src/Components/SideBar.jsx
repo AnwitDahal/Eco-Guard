@@ -2,9 +2,15 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { iconsMap, userOptionsList } from '../Data';
 import { LogOut } from 'lucide-react';
+import { useAuthStore } from '../store/AppStore';
 
 const SideBar = () => {
+  const {user,logout}=useAuthStore();
   const location = useLocation(); // Get the current location
+
+  const handleLogout=()=>{
+    logout();
+  }
 
   return (
     <section className='bg-[hsl(198,55%,60%)] bg-opacity-20 shadow-2xl mt-10 min-w-72 py-9 px-8 rounded-[1.875rem] h-[80vh]'>
@@ -25,7 +31,7 @@ const SideBar = () => {
         })}
         <li className="flex items-center gap-2 mt-72">
           <LogOut size={24} color='white' />
-          <span>Log Out</span>
+          <span onClick={handleLogout} className='cursor-pointer'>Log Out</span>
         </li>
       </ul>
     </section>

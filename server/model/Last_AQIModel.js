@@ -14,7 +14,7 @@ const aqiDetailsSchema = new mongoose.Schema({
 // Schema for each day's AQI data
 const dayAQISchema = new mongoose.Schema({
   date: { type: Date, required: true },
-  day: { type: String, required: true },
+  // day: { type: String, required: true },
   details: { type: aqiDetailsSchema, required: true }
 }, { _id: false });
 

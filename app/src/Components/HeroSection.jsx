@@ -21,7 +21,7 @@ const HeroSection = () => {
           <button className="bg-[#342753E6] text-white py-4 px-6 rounded-lg font-medium"
            onClick={() => navigate("/login")}> Log In</button>
           <button className="bg-transparent border-2 border-white py-4 px-6 rounded-lg font-medium"
-          onClick={()=>navigate("/signupindie")}>Sign Up</button>
+          onClick={()=>navigate("/choosing")}>Sign Up</button>
         </div>
       </div>
     </section>

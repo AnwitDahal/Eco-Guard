@@ -1,5 +1,6 @@
 import { keyfeatureimg1 } from "./Images";
 import { LayoutDashboard, Monitor, Contact, Settings,Waves,Cloud,Wind,Thermometer,Droplet } from 'lucide-react';
+import {user} from useAuthStore;
 
 export const KeyFeaturesPart=[
     {

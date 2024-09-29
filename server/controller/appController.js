@@ -526,9 +526,8 @@ module.exports.lastSeven = async () => {
       // Get the last seven days' worth of data (ensure at least 7 days are present)
       const lastSevenDaysData = sortedData.slice(0, 7).map((entry) => {
         return {
-          date: entry.date,  // Ensure date is formatted correctly
           details: {
-            "Pm2.5": entry.details.Pm2_5 || null,
+          "Pm2.5": entry.details['Pm2.5'] || null,
             "Pm10": entry.details.Pm10 || null,
             "No2": entry.details.No2 || null,
             "So2": entry.details.So2 || null,
