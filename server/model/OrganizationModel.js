@@ -15,7 +15,7 @@ const orgSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    address: {
+    district: {
       type: String,
       require: true,
     },
@@ -35,8 +35,15 @@ const orgSchema = new mongoose.Schema(
       type: String,
       require: true,
     },
-    image: {
+    Certiimage: {
       type: String,
+      require:true,
+    },
+    WorkImage:{
+      type:String,
+    },
+    points:{
+      type:Number
     },
     resetPasswordToken: String,
     resetPasswordExpiresAt: Date,
